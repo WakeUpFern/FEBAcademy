@@ -21,6 +21,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { GripVertical, Plus, Edit, Trash, Video, FileText, Loader2, Save } from "lucide-react";
 import type { CourseSection, Module } from "@/types/database";
 import { createSection, createModule, updateSectionsOrder, updateModulesOrder } from "@/app/actions/admin/courses";
@@ -123,30 +124,42 @@ function SortableSectionItem({
             {modules.map(mod => (
               <SortableModuleItem key={mod.id} module={mod} />
             ))}
-            {modules.length === 0 && !isAddingModule && (
+            {modules.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">No hay clases en esta sección.</p>
             )}
           </div>
         </SortableContext>
 
-        {isAddingModule && (
-          <div className="flex items-center gap-2 mt-4 p-3 border rounded-md bg-background">
-            <Input 
-              placeholder="Título de la nueva clase..." 
-              value={newModuleTitle}
-              onChange={e => setNewModuleTitle(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAddModule()}
-              autoFocus
-              className="h-9"
-            />
-            <Button size="sm" onClick={handleAddModule} disabled={isPending || !newModuleTitle.trim()}>
-              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar"}
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setIsAddingModule(false)}>
-              Cancelar
-            </Button>
-          </div>
-        )}
+        <Dialog open={isAddingModule} onOpenChange={setIsAddingModule}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Añadir Nueva Clase</DialogTitle>
+              <DialogDescription>
+                Ingresa el título para la nueva clase. Podrás configurar el video y contenido después.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor={`module_title_${section.id}`}>Título de la Clase</Label>
+                <Input 
+                  id={`module_title_${section.id}`}
+                  placeholder="Ej. Introducción al tema" 
+                  value={newModuleTitle}
+                  onChange={e => setNewModuleTitle(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddModule()}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddingModule(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleAddModule} disabled={isPending || !newModuleTitle.trim()}>
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Crear Clase"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
@@ -243,25 +256,36 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
         </div>
       </div>
 
-      {isAddingSection && (
-        <div className="p-4 border rounded-xl bg-card shadow-sm mb-6 flex items-end gap-4 animate-in fade-in slide-in-from-top-4">
-          <div className="flex-1 space-y-2">
-            <Label htmlFor="section_title">Título de la Sección</Label>
-            <Input 
-              id="section_title" 
-              placeholder="Ej. Introducción al curso" 
-              value={newSectionTitle}
-              onChange={e => setNewSectionTitle(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAddSection()}
-              autoFocus
-            />
+      <Dialog open={isAddingSection} onOpenChange={setIsAddingSection}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nueva Sección</DialogTitle>
+            <DialogDescription>
+              Crea una nueva sección para organizar las clases de tu curso.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="section_title">Título de la Sección</Label>
+              <Input 
+                id="section_title" 
+                placeholder="Ej. Introducción al curso" 
+                value={newSectionTitle}
+                onChange={e => setNewSectionTitle(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddSection()}
+              />
+            </div>
           </div>
-          <Button onClick={handleAddSection} disabled={isPending || !newSectionTitle.trim()}>
-            {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Crear"}
-          </Button>
-          <Button variant="ghost" onClick={() => setIsAddingSection(false)}>Cancelar</Button>
-        </div>
-      )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddingSection(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAddSection} disabled={isPending || !newSectionTitle.trim()}>
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Crear Sección"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={sections.map(s => s.id)} strategy={verticalListSortingStrategy}>

@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { createCourse, updateCourse } from "@/app/actions/admin/courses";
 import type { Course } from "@/types/database";
 
@@ -153,45 +155,68 @@ export function CourseForm({ initialData }: CourseFormProps) {
         </div>
 
         {/* Configuración */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <h3 className="text-lg font-medium">Configuración</h3>
           
           <div className="space-y-2">
             <Label htmlFor="type">Tipo de Curso</Label>
-            <select id="type" {...register("type")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              <option value="recorded">Grabado (VOD)</option>
-              <option value="live">En Vivo (Streaming)</option>
-            </select>
+            <Select onValueChange={(value) => setValue("type", value as any)} defaultValue={watch("type")}>
+              <SelectTrigger id="type">
+                <SelectValue placeholder="Selecciona el tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="recorded">Grabado (VOD)</SelectItem>
+                <SelectItem value="live">En Vivo (Streaming)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="level">Nivel</Label>
-            <select id="level" {...register("level")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              <option value="all">Todos los niveles</option>
-              <option value="beginner">Principiante</option>
-              <option value="intermediate">Intermedio</option>
-              <option value="advanced">Avanzado</option>
-            </select>
+            <Select onValueChange={(value) => setValue("level", value as any)} defaultValue={watch("level") || "all"}>
+              <SelectTrigger id="level">
+                <SelectValue placeholder="Selecciona el nivel" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los niveles</SelectItem>
+                <SelectItem value="beginner">Principiante</SelectItem>
+                <SelectItem value="intermediate">Intermedio</SelectItem>
+                <SelectItem value="advanced">Avanzado</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="status">Estado</Label>
-            <select id="status" {...register("status")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              <option value="draft">Borrador</option>
-              <option value="published">Publicado</option>
-              <option value="archived">Archivado</option>
-            </select>
+            <Select onValueChange={(value) => setValue("status", value as any)} defaultValue={watch("status")}>
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Selecciona el estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">Borrador</SelectItem>
+                <SelectItem value="published">Publicado</SelectItem>
+                <SelectItem value="archived">Archivado</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         {/* Medios y Precio */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <h3 className="text-lg font-medium">Medios y Precio</h3>
 
-          <div className="space-y-2">
-            <Label htmlFor="thumbnail_url">URL de la Miniatura</Label>
-            <Input id="thumbnail_url" {...register("thumbnail_url")} placeholder="https://ejemplo.com/imagen.jpg" />
-            {errors.thumbnail_url && <p className="text-xs text-destructive">{errors.thumbnail_url.message}</p>}
+          <div className="space-y-3">
+            <Label>Miniatura del Curso</Label>
+            <ImageUpload 
+              value={watch("thumbnail_url") || ""} 
+              onChange={(url) => setValue("thumbnail_url", url, { shouldValidate: true })} 
+              onRemove={() => setValue("thumbnail_url", "", { shouldValidate: true })}
+            />
+            <div className="pt-2">
+              <Label htmlFor="thumbnail_url" className="text-xs text-muted-foreground">O pega una URL directamente:</Label>
+              <Input id="thumbnail_url" {...register("thumbnail_url")} placeholder="https://ejemplo.com/imagen.jpg" className="mt-1" />
+            </div>
+            {errors.thumbnail_url && <p className="text-xs text-destructive">{errors.thumbnail_url?.message as string}</p>}
           </div>
 
           <div className="space-y-2">
