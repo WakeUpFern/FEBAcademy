@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -57,11 +58,18 @@ export function Header() {
           href="/"
           className="flex items-center gap-2.5 font-bold text-xl tracking-tight group"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-brand text-white shadow-md shadow-brand/25 transition-transform group-hover:scale-105">
-            <GraduationCap className="h-5 w-5" />
+          <div className="relative h-9 w-9 overflow-hidden rounded-lg transition-transform group-hover:scale-105">
+            <Image
+              src="/logo.png"
+              alt="FEBAcademy"
+              fill
+              sizes="36px"
+              className="object-contain"
+              priority
+            />
           </div>
           <span className="hidden sm:inline-block">
-            FEBA<span className="text-primary">cademy</span>
+            FEBA<span className="text-[#f65f4c]">cademy</span>
           </span>
         </Link>
 
@@ -141,7 +149,7 @@ export function Header() {
             <Button
               onClick={() => signInWithGoogle()}
               size="sm"
-              className="gradient-brand text-white border-0 shadow-md shadow-brand/25 hover:shadow-lg hover:shadow-brand/30 transition-all"
+              className="bg-white text-black border border-border shadow-sm hover:bg-accent transition-colors"
             >
               <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
                 <path
@@ -185,9 +193,17 @@ export function Header() {
                     onClick={() => setMobileOpen(false)}
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-brand text-white">
-                      <GraduationCap className="h-4 w-4" />
+                      <div className="relative h-6 w-6">
+                        <Image
+                          src="/logo.png"
+                          alt="FEBAcademy"
+                          fill
+                          sizes="24px"
+                          className="object-contain"
+                        />
+                      </div>
                     </div>
-                    FEBA<span className="text-primary">cademy</span>
+                    FEBA<span className="text-[#f65f4c]">cademy</span>
                   </Link>
                 </div>
                 <nav className="flex-1 p-4 space-y-1">

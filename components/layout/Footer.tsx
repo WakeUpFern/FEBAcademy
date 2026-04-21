@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap } from "lucide-react";
+import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 
 const footerLinks = {
@@ -25,10 +25,19 @@ export function Footer() {
               href="/"
               className="flex items-center gap-2.5 font-bold text-lg mb-4"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-brand text-white shadow-md shadow-brand/25">
-                <GraduationCap className="h-4 w-4" />
+              <div className="relative h-8 w-8 overflow-hidden rounded-lg">
+                <Image
+                  src="/logo.png"
+                  alt="FEBAcademy"
+                  fill
+                  sizes="32px"
+                  className="object-contain"
+                />
               </div>
-              FEBA<span className="text-primary">Academy</span>
+              <span>
+                FEBA
+                <span className="text-[#f65f4c]">cademy</span>
+              </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
               Plataforma de cursos en línea para aprender tecnología, diseño y
