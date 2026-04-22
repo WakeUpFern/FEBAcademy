@@ -72,7 +72,7 @@ function AnimatedLogoText() {
   return (
     <span
       style={{ color: ANIMATED_WORDS[wordIndex].color }}
-      className="transition-colors duration-300 inline-flex items-center min-w-[75px]"
+      className="transition-colors duration-300 inline-flex items-center min-w-[125px]"
     >
       {text}
       <span className="w-[2px] h-[1em] bg-current ml-0.5 animate-pulse inline-block" />
@@ -105,14 +105,14 @@ export function Header() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-bold text-xl tracking-tight group"
+          className="flex items-center gap-3.5 font-bold text-2xl tracking-tight group"
         >
-          <div className="relative h-9 w-9 overflow-hidden rounded-lg transition-transform group-hover:scale-105">
+          <div className="relative h-16 w-16 overflow-hidden rounded-lg transition-transform group-hover:scale-105">
             <Image
-              src="/logo.png"
+              src="/logopx2.svg"
               alt="FEBAcademy"
               fill
-              sizes="36px"
+              sizes="64px"
               className="object-contain"
               priority
             />
@@ -238,16 +238,16 @@ export function Header() {
                 <div className="p-6 border-b">
                   <Link
                     href="/"
-                    className="flex items-center gap-2.5 font-bold text-lg"
+                    className="flex items-center gap-3 font-bold text-2xl"
                     onClick={() => setMobileOpen(false)}
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-brand text-white">
-                      <div className="relative h-6 w-6">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg gradient-brand text-white">
+                      <div className="relative h-10 w-10">
                         <Image
-                          src="/logo.png"
+                          src="/logopx2.svg"
                           alt="FEBAcademy"
                           fill
-                          sizes="24px"
+                          sizes="40px"
                           className="object-contain"
                         />
                       </div>

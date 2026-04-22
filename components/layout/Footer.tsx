@@ -84,7 +84,7 @@ export function Footer() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} FEBAcademy. Todos los derechos
+            © {new Date().getFullYear()} FEBAcode. Todos los derechos
             reservados.
           </p>
           <div className="flex items-center gap-4">
