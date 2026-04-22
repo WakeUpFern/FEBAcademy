@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { cache } from "react";
 import { ModuleList } from "@/components/courses/ModuleList";
 import { EnrollButton } from "@/components/courses/EnrollButton";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,7 @@ type CourseDetail = Course & {
 
 type SectionWithModules = CourseSection & { modules: Module[] };
 
-async function getCourse(slug: string) {
+const getCourse = cache(async (slug: string) => {
   const supabase = await createClient();
 
   const { data: course } = await supabase
@@ -51,19 +52,20 @@ async function getCourse(slug: string) {
 
   const courseId = course.id;
 
-  // Get sections with modules
-  const { data: sections } = await supabase
-    .from("course_sections")
-    .select("*")
-    .eq("course_id", courseId)
-    .order("sort_order", { ascending: true });
-
-  const { data: modules } = await supabase
-    .from("modules")
-    .select("*")
-    .eq("course_id", courseId)
-    .eq("is_published", true)
-    .order("sort_order", { ascending: true });
+  // Parallelize remaining queries for massive speedup
+  const [
+    { data: sections },
+    { data: modules },
+    { count: enrollmentCount },
+    { data: reviewStats },
+    { data: { user } },
+  ] = await Promise.all([
+    supabase.from("course_sections").select("*").eq("course_id", courseId).order("sort_order", { ascending: true }),
+    supabase.from("modules").select("*").eq("course_id", courseId).eq("is_published", true).order("sort_order", { ascending: true }),
+    supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("course_id", courseId).eq("status", "active"),
+    supabase.from("course_reviews").select("rating").eq("course_id", courseId).eq("is_visible", true),
+    supabase.auth.getUser(),
+  ]);
 
   // Group modules by section
   const sectionsWithModules: SectionWithModules[] =
@@ -91,20 +93,6 @@ async function getCourse(slug: string) {
     });
   }
 
-  // Get enrollment count
-  const { count: enrollmentCount } = await supabase
-    .from("enrollments")
-    .select("id", { count: "exact", head: true })
-    .eq("course_id", courseId)
-    .eq("status", "active");
-
-  // Get review stats
-  const { data: reviewStats } = await supabase
-    .from("course_reviews")
-    .select("rating")
-    .eq("course_id", courseId)
-    .eq("is_visible", true);
-
   const averageRating =
     reviewStats && reviewStats.length > 0
       ? reviewStats.reduce((acc, r) => acc + (r as unknown as { rating: number }).rating, 0) /
@@ -112,9 +100,6 @@ async function getCourse(slug: string) {
       : 0;
 
   // Check if current user is enrolled
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   let isEnrolled = false;
   if (user) {
@@ -146,7 +131,7 @@ async function getCourse(slug: string) {
     totalModules: (modules || []).length,
     totalDurationMinutes: Math.ceil(totalDuration / 60),
   };
-}
+});
 
 export async function generateMetadata({
   params,
@@ -317,6 +302,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
                       src={course.thumbnail_url}
                       alt={course.title}
                       fill
+                      priority
                       className="object-cover"
                     />
                     {course.trailer_youtube_id && (

@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, LayoutList } from "lucide-react";
+import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { createCourse, updateCourse } from "@/app/actions/admin/courses";
@@ -245,6 +246,12 @@ export function CourseForm({ initialData }: CourseFormProps) {
       </div>
 
       <div className="flex justify-end gap-4 border-t pt-6">
+        {isEditing && (
+          <Button type="button" variant="outline" className="mr-auto" render={<Link href={`/admin/cursos/${initialData.id}/modulos`} />}>
+            <LayoutList className="h-4 w-4 mr-2" />
+            Gestionar Contenido
+          </Button>
+        )}
         <Button variant="outline" type="button" onClick={() => router.back()} disabled={isPending}>
           Cancelar
         </Button>

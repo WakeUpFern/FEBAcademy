@@ -2,7 +2,7 @@ import { CourseForm } from "@/components/admin/CourseForm";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, ArrowLeft, LayoutList } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import type { Course } from "@/types/database";
@@ -33,19 +33,11 @@ export default async function EditCoursePage({ params }: PageProps) {
     <div className="space-y-6 max-w-4xl animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" render={<Link href="/admin/cursos" />} className="h-8 w-8">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <Badge variant="secondary">
-            <BookOpen className="h-3.5 w-3.5 mr-1.5" />
-            Editar
-          </Badge>
+          <Link href="/admin/cursos" className="flex items-center gap-2 text-lg font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-5 w-5" />
+            Cursos
+          </Link>
         </div>
-        
-        <Button variant="outline" render={<Link href={`/admin/cursos/${id}/modulos`} />}>
-          <LayoutList className="h-4 w-4 mr-2" />
-          Gestionar Contenido
-        </Button>
       </div>
 
       <div>

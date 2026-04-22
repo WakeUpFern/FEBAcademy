@@ -48,18 +48,11 @@ export default async function ManageModulesPage({ params }: PageProps) {
     <div className="space-y-6 max-w-5xl animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/admin/cursos" className={buttonVariants({ variant: "ghost", size: "icon" }) + " h-8 w-8"}>
-            <ArrowLeft className="h-4 w-4" />
+          <Link href={`/admin/cursos/${id}`} className="flex items-center gap-2 text-lg font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-5 w-5" />
+            Editar Curso
           </Link>
-          <Badge variant="secondary">
-            <BookOpen className="h-3.5 w-3.5 mr-1.5" />
-            Contenido
-          </Badge>
         </div>
-        <Link href={`/admin/cursos/${id}`} className={buttonVariants({ variant: "outline" })}>
-          <Settings className="h-4 w-4 mr-2" />
-          Configuración Básica
-        </Link>
       </div>
 
       <div>

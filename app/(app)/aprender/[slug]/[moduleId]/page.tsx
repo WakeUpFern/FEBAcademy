@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle, ChevronLeft, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { unstable_cache } from "next/cache";
 
 export const metadata = {
   title: "Aprender | FEBAcademy",
@@ -44,19 +45,36 @@ export default async function LearnModulePage(
     redirect(`/cursos/${slug}`);
   }
 
-  // 4. Fetch the full course curriculum
-  const { data: sections } = await supabase
-    .from("course_sections")
-    .select("*")
-    .eq("course_id", course.id)
-    .order("sort_order") as any;
+  // 4. Fetch the full course curriculum (Cached for performance)
+  const getCurriculum = unstable_cache(
+    async (cid: string) => {
+      // Usar un cliente anónimo sin cookies para que unstable_cache no falle
+      const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
+      const anonSupabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      
+      const { data: sections } = await anonSupabase
+        .from("course_sections")
+        .select("*")
+        .eq("course_id", cid)
+        .order("sort_order") as any;
 
-  const { data: modules } = await supabase
-    .from("modules")
-    .select("id, section_id, title, is_published, content_type, youtube_video_id, sort_order")
-    .eq("course_id", course.id)
-    .eq("is_published", true)
-    .order("sort_order") as any;
+      const { data: modules } = await anonSupabase
+        .from("modules")
+        .select("id, section_id, title, is_published, content_type, youtube_video_id, sort_order")
+        .eq("course_id", cid)
+        .eq("is_published", true)
+        .order("sort_order") as any;
+        
+      return { sections, modules };
+    },
+    [`curriculum-${course.id}`],
+    { revalidate: 60, tags: [`course-${course.id}-modules`] }
+  );
+
+  const { sections, modules } = await getCurriculum(course.id);
 
   if (!sections || !modules) notFound();
 

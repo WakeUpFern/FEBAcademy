@@ -8,7 +8,10 @@ import {
   PointerSensor, 
   useSensor, 
   useSensors,
-  DragEndEvent
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+  defaultDropAnimationSideEffects
 } from "@dnd-kit/core";
 import { 
   arrayMove, 
@@ -47,7 +50,7 @@ function extractYoutubeId(input: string): string {
 
 // Draggable Module Item
 function SortableModuleItem({ module, courseId }: { module: Module; courseId: string }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: module.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: module.id });
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(module.title);
   const [editYoutubeInput, setEditYoutubeInput] = useState(module.youtube_video_id ? `https://youtube.com/watch?v=${module.youtube_video_id}` : "");
@@ -55,8 +58,9 @@ function SortableModuleItem({ module, courseId }: { module: Module; courseId: st
   const router = useRouter();
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   const isVideo = module.content_type === "youtube_video" || module.content_type === "youtube_live";
@@ -88,7 +92,7 @@ function SortableModuleItem({ module, courseId }: { module: Module; courseId: st
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center justify-between p-3 mb-2 bg-background border rounded-md shadow-sm group">
+    <div ref={setNodeRef} style={style} className="flex items-center justify-between p-2 group hover:bg-accent/50 rounded-lg transition-colors">
       <div className="flex items-center gap-3">
         <div {...attributes} {...listeners} className="cursor-grab hover:bg-muted p-1 rounded">
           <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -166,15 +170,16 @@ function SortableSectionItem({
   modules: Module[];
   courseId: string;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: section.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: section.id });
   const [isPending, startTransition] = useTransition();
   const [newModuleTitle, setNewModuleTitle] = useState("");
   const [isAddingModule, setIsAddingModule] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   const handleAddModule = () => {
@@ -201,13 +206,13 @@ function SortableSectionItem({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="mb-6 bg-card border rounded-xl overflow-hidden shadow-sm">
-      <div className="flex items-center justify-between p-4 bg-muted/30 border-b group">
+    <div ref={setNodeRef} style={style} className="mb-10">
+      <div className="flex items-center justify-between pb-4 border-b group mb-4">
         <div className="flex items-center gap-3">
-          <div {...attributes} {...listeners} className="cursor-grab hover:bg-muted p-1 rounded">
+          <div {...attributes} {...listeners} className="cursor-grab hover:bg-muted p-1 rounded transition-colors">
             <GripVertical className="h-5 w-5 text-muted-foreground" />
           </div>
-          <h3 className="font-semibold">{section.title}</h3>
+          <h3 className="text-xl font-bold tracking-tight">{section.title}</h3>
         </div>
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button variant="ghost" size="sm" onClick={() => setIsAddingModule(!isAddingModule)}>
@@ -217,9 +222,9 @@ function SortableSectionItem({
         </div>
       </div>
 
-      <div className="p-4 bg-muted/10">
+      <div className="pl-8">
         <SortableContext items={modules.map(m => m.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {modules.map(mod => (
               <SortableModuleItem key={mod.id} module={mod} courseId={courseId} />
             ))}
@@ -273,9 +278,10 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
   const [isPending, startTransition] = useTransition();
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [isAddingSection, setIsAddingSection] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeType, setActiveType] = useState<'section' | 'module' | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -292,30 +298,60 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+    const isSection = sections.some(s => s.id === active.id);
+    setActiveType(isSection ? 'section' : 'module');
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    
+    setActiveId(null);
+    setActiveType(null);
+    
     if (!over || active.id === over.id) return;
-
+    
     // Check if dragging a section
     const isSectionDrag = sections.some(s => s.id === active.id);
     
     if (isSectionDrag) {
       const oldIndex = sections.findIndex(s => s.id === active.id);
       const newIndex = sections.findIndex(s => s.id === over.id);
-      setSections(arrayMove(sections, oldIndex, newIndex));
-      setHasUnsavedChanges(true);
+      
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const newSections = arrayMove(sections, oldIndex, newIndex);
+      setSections(newSections);
+      
+      // Auto save order
+      startTransition(async () => {
+        const sectionsOrder = newSections.map((s, index) => ({ id: s.id, sort_order: index }));
+        await updateSectionsOrder(courseId, sectionsOrder);
+        router.refresh();
+      });
     } else {
-      // It's a module drag (simplified to only allow within same section for now)
+      // It's a module drag
       const oldIndex = modules.findIndex(m => m.id === active.id);
       const newIndex = modules.findIndex(m => m.id === over.id);
       
+      if (oldIndex === -1 || newIndex === -1) return;
+
       const activeModule = modules[oldIndex];
       const overModule = modules[newIndex];
       
       // Only allow reordering within the same section for this simple implementation
-      if (activeModule.section_id === overModule.section_id) {
-        setModules(arrayMove(modules, oldIndex, newIndex));
-        setHasUnsavedChanges(true);
+      if (activeModule && overModule && activeModule.section_id === overModule.section_id) {
+        const newModules = arrayMove(modules, oldIndex, newIndex);
+        setModules(newModules);
+        
+        // Auto save order
+        startTransition(async () => {
+          const modulesOrder = newModules.map((m, index) => ({ id: m.id, section_id: m.section_id, sort_order: index }));
+          await updateModulesOrder(courseId, modulesOrder);
+          router.refresh();
+        });
       }
     }
   };
@@ -340,42 +376,27 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
     });
   };
 
-  const saveOrder = () => {
-    startTransition(async () => {
-      // Prepare sections order
-      const sectionsOrder = sections.map((s, index) => ({ id: s.id, sort_order: index }));
-      await updateSectionsOrder(courseId, sectionsOrder);
-
-      // Prepare modules order
-      const modulesOrder = modules.map((m, index) => ({ id: m.id, section_id: m.section_id, sort_order: index }));
-      await updateModulesOrder(courseId, modulesOrder);
-
-      setHasUnsavedChanges(false);
-      router.refresh();
-    });
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between bg-muted/50 p-4 rounded-lg border">
+      <div className="flex items-center justify-between py-6 mb-8 border-b-2 border-primary/10">
         <div>
-          <h2 className="text-lg font-semibold">Secciones y Clases</h2>
-          <p className="text-sm text-muted-foreground">Estructura el contenido de tu curso</p>
+          <h2 className="text-2xl font-bold tracking-tight">Estructura del Curso</h2>
+          <p className="text-muted-foreground">Gestiona secciones y clases sin fricción</p>
         </div>
         <div className="flex gap-2">
-          {hasUnsavedChanges && (
-            <Button onClick={saveOrder} disabled={isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-              {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-              Guardar Orden
-            </Button>
+          {isPending && (
+            <div className="flex items-center text-sm text-muted-foreground mr-4 animate-pulse">
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Guardando...
+            </div>
           )}
-          <Button onClick={() => setIsAddingSection(true)} variant="outline">
+          <Button onClick={() => setIsAddingSection(true)} className="gradient-brand text-white border-0 shadow-lg shadow-brand/20">
             <Plus className="h-4 w-4 mr-2" />
             Nueva Sección
           </Button>
         </div>
       </div>
-
+ 
       <Dialog open={isAddingSection} onOpenChange={setIsAddingSection}>
         <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
           <DialogHeader className="px-6 pt-6 pb-4 bg-muted/30 border-b">
@@ -408,9 +429,14 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+ 
       {isMounted && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext 
+          sensors={sensors} 
+          collisionDetection={closestCenter} 
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
           <SortableContext items={sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-4">
               {sections.map(section => (
@@ -423,6 +449,28 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
               ))}
             </div>
           </SortableContext>
+          
+          <DragOverlay adjustScale={false}>
+            {activeId && activeType === 'section' ? (
+              <div className="bg-background border rounded-lg p-4 shadow-2xl opacity-90 cursor-grabbing w-full max-w-5xl">
+                <div className="flex items-center gap-3">
+                  <GripVertical className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="text-xl font-bold tracking-tight">
+                    {sections.find(s => s.id === activeId)?.title}
+                  </h3>
+                </div>
+              </div>
+            ) : activeId && activeType === 'module' ? (
+              <div className="bg-background border rounded-lg p-3 shadow-2xl opacity-90 cursor-grabbing w-full max-w-md">
+                <div className="flex items-center gap-3">
+                  <GripVertical className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-sm">
+                    {modules.find(m => m.id === activeId)?.title}
+                  </span>
+                </div>
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
 
