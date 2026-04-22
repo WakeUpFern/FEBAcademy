@@ -5,7 +5,7 @@ import type { Course, CourseSection, Module } from "@/types/database";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, BookOpen, Settings } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -48,23 +48,22 @@ export default async function ManageModulesPage({ params }: PageProps) {
     <div className="space-y-6 max-w-5xl animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" render={<Link href="/admin/cursos" />} className="h-8 w-8">
+          <Link href="/admin/cursos" className={buttonVariants({ variant: "ghost", size: "icon" }) + " h-8 w-8"}>
             <ArrowLeft className="h-4 w-4" />
-          </Button>
+          </Link>
           <Badge variant="secondary">
             <BookOpen className="h-3.5 w-3.5 mr-1.5" />
-            Currículum
+            Contenido
           </Badge>
         </div>
-        
-        <Button variant="outline" render={<Link href={`/admin/cursos/${id}`} />}>
+        <Link href={`/admin/cursos/${id}`} className={buttonVariants({ variant: "outline" })}>
           <Settings className="h-4 w-4 mr-2" />
           Configuración Básica
-        </Button>
+        </Link>
       </div>
 
       <div>
-        <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Currículum: {course.title}</h1>
+        <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Contenido: {course.title}</h1>
         <p className="text-muted-foreground mt-1">
           Gestiona las secciones y clases del curso. Arrastra y suelta para reordenar.
         </p>

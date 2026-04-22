@@ -120,11 +120,12 @@ export function CourseForm({ initialData }: CourseFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       {error && <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">{error}</div>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-8 max-w-3xl">
         {/* Información Básica */}
-        <div className="space-y-4 md:col-span-2">
-          <h3 className="text-lg font-medium">Información Básica</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-6">
+          <h3 className="text-lg font-medium border-b pb-2">Información Básica</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="title">Título del Curso</Label>
               <Input id="title" {...register("title")} placeholder="Ej. Curso de Next.js" />
@@ -134,7 +135,7 @@ export function CourseForm({ initialData }: CourseFormProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="slug">URL Slug</Label>
-                <Button type="button" variant="link" className="h-auto p-0 text-xs" onClick={generateSlug}>
+                <Button type="button" variant="link" className="h-auto p-0 text-xs text-muted-foreground hover:text-primary" onClick={generateSlug}>
                   Generar desde título
                 </Button>
               </div>
@@ -156,86 +157,90 @@ export function CourseForm({ initialData }: CourseFormProps) {
 
         {/* Configuración */}
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">Configuración</h3>
+          <h3 className="text-lg font-medium border-b pb-2">Configuración</h3>
           
-          <div className="space-y-2">
-            <Label htmlFor="type">Tipo de Curso</Label>
-            <Select onValueChange={(value) => setValue("type", value as any)} defaultValue={watch("type")}>
-              <SelectTrigger id="type">
-                <SelectValue placeholder="Selecciona el tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recorded">Grabado (VOD)</SelectItem>
-                <SelectItem value="live">En Vivo (Streaming)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="type">Tipo de Curso</Label>
+              <Select onValueChange={(value) => setValue("type", value as any)} defaultValue={watch("type")}>
+                <SelectTrigger id="type">
+                  <SelectValue placeholder="Selecciona el tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recorded">Grabado (VOD)</SelectItem>
+                  <SelectItem value="live">En Vivo (Streaming)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="level">Nivel</Label>
-            <Select onValueChange={(value) => setValue("level", value as any)} defaultValue={watch("level") || "all"}>
-              <SelectTrigger id="level">
-                <SelectValue placeholder="Selecciona el nivel" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los niveles</SelectItem>
-                <SelectItem value="beginner">Principiante</SelectItem>
-                <SelectItem value="intermediate">Intermedio</SelectItem>
-                <SelectItem value="advanced">Avanzado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="level">Nivel</Label>
+              <Select onValueChange={(value) => setValue("level", value as any)} defaultValue={watch("level") || "all"}>
+                <SelectTrigger id="level">
+                  <SelectValue placeholder="Selecciona el nivel" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los niveles</SelectItem>
+                  <SelectItem value="beginner">Principiante</SelectItem>
+                  <SelectItem value="intermediate">Intermedio</SelectItem>
+                  <SelectItem value="advanced">Avanzado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="status">Estado</Label>
-            <Select onValueChange={(value) => setValue("status", value as any)} defaultValue={watch("status")}>
-              <SelectTrigger id="status">
-                <SelectValue placeholder="Selecciona el estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="draft">Borrador</SelectItem>
-                <SelectItem value="published">Publicado</SelectItem>
-                <SelectItem value="archived">Archivado</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <Label htmlFor="status">Estado</Label>
+              <Select onValueChange={(value) => setValue("status", value as any)} defaultValue={watch("status")}>
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Selecciona el estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Borrador</SelectItem>
+                  <SelectItem value="published">Publicado</SelectItem>
+                  <SelectItem value="archived">Archivado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
         {/* Medios y Precio */}
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">Medios y Precio</h3>
+          <h3 className="text-lg font-medium border-b pb-2">Medios y Precio</h3>
 
-          <div className="space-y-3">
-            <Label>Miniatura del Curso</Label>
-            <ImageUpload 
-              value={watch("thumbnail_url") || ""} 
-              onChange={(url) => setValue("thumbnail_url", url, { shouldValidate: true })} 
-              onRemove={() => setValue("thumbnail_url", "", { shouldValidate: true })}
-            />
-            <div className="pt-2">
-              <Label htmlFor="thumbnail_url" className="text-xs text-muted-foreground">O pega una URL directamente:</Label>
-              <Input id="thumbnail_url" {...register("thumbnail_url")} placeholder="https://ejemplo.com/imagen.jpg" className="mt-1" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label>Miniatura del Curso</Label>
+              <ImageUpload 
+                value={watch("thumbnail_url") || ""} 
+                onChange={(url) => setValue("thumbnail_url", url, { shouldValidate: true })} 
+                onRemove={() => setValue("thumbnail_url", "", { shouldValidate: true })}
+              />
+              {errors.thumbnail_url && <p className="text-xs text-destructive">{errors.thumbnail_url?.message as string}</p>}
             </div>
-            {errors.thumbnail_url && <p className="text-xs text-destructive">{errors.thumbnail_url?.message as string}</p>}
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="trailer_youtube_id">ID del Trailer en YouTube</Label>
-            <Input id="trailer_youtube_id" {...register("trailer_youtube_id")} placeholder="dQw4w9WgXcQ" />
-          </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="trailer_youtube_id">ID del Trailer en YouTube</Label>
+                <Input id="trailer_youtube_id" {...register("trailer_youtube_id")} placeholder="dQw4w9WgXcQ" />
+              </div>
 
-          <div className="flex items-center gap-2 pt-2">
-            <input type="checkbox" id="is_free" {...register("is_free")} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-            <Label htmlFor="is_free">El curso es gratuito</Label>
-          </div>
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="is_free" {...register("is_free")} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                  <Label htmlFor="is_free" className="font-medium">El curso es gratuito</Label>
+                </div>
 
-          {!isFree && (
-            <div className="space-y-2">
-              <Label htmlFor="price">Precio (USD)</Label>
-              <Input id="price" type="number" step="0.01" {...register("price")} />
-              {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
+                {!isFree && (
+                  <div className="space-y-2 pt-2 border-t">
+                    <Label htmlFor="price">Precio (USD)</Label>
+                    <Input id="price" type="number" step="0.01" {...register("price")} className="max-w-[200px]" />
+                    {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
 

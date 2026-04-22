@@ -114,7 +114,7 @@ export default async function AdminCoursesPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="icon" render={<Link href={`/admin/cursos/${course.id}/modulos`} />} title="Gestionar currículum">
+                      <Button variant="ghost" size="icon" render={<Link href={`/admin/cursos/${course.id}/modulos`} />} title="Gestionar contenido">
                         <ListTree className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon" render={<Link href={`/admin/cursos/${course.id}`} />} title="Editar configuración">

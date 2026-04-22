@@ -44,7 +44,7 @@ export default async function EditCoursePage({ params }: PageProps) {
         
         <Button variant="outline" render={<Link href={`/admin/cursos/${id}/modulos`} />}>
           <LayoutList className="h-4 w-4 mr-2" />
-          Gestionar Currículum
+          Gestionar Contenido
         </Button>
       </div>
 
