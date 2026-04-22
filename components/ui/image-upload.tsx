@@ -2,15 +2,9 @@
 
 import { useState, useCallback } from "react";
 import { UploadCloud, X, Loader2, Image as ImageIcon } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-
-// Client for storage uploads (requires NEXT_PUBLIC_SUPABASE_URL and ANON_KEY)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 interface ImageUploadProps {
   value: string;
@@ -25,10 +19,11 @@ export function ImageUpload({
   value,
   onChange,
   onRemove,
-  bucket = "public", // default bucket if none specified
+  bucket = "Imagenes_Cursos", // default bucket if none specified
   folder = "courses",
   className,
 }: ImageUploadProps) {
+  const supabase = createClient();
   const [isUploading, setIsUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +88,7 @@ export function ImageUpload({
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragOver(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleUpload(e.dataTransfer.files[0]);
     }
@@ -137,8 +132,8 @@ export function ImageUpload({
         onDrop={onDrop}
         className={cn(
           "relative flex flex-col items-center justify-center aspect-video w-full rounded-xl border-2 border-dashed transition-colors",
-          isDragOver 
-            ? "border-primary bg-primary/5" 
+          isDragOver
+            ? "border-primary bg-primary/5"
             : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
           isUploading && "opacity-50 pointer-events-none"
         )}
@@ -150,7 +145,7 @@ export function ImageUpload({
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={isUploading}
         />
-        
+
         {isUploading ? (
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
