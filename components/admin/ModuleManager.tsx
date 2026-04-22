@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { 
   DndContext, 
-  closestCenter, 
   KeyboardSensor, 
   PointerSensor, 
   useSensor, 
@@ -11,7 +10,8 @@ import {
   DragEndEvent,
   DragStartEvent,
   DragOverlay,
-  defaultDropAnimationSideEffects
+  defaultDropAnimationSideEffects,
+  closestCorners
 } from "@dnd-kit/core";
 import { 
   arrayMove, 
@@ -25,32 +25,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { GripVertical, Plus, Edit, Trash, Video, FileText, Loader2, Save } from "lucide-react";
+import { GripVertical, Plus, Edit, Trash, Video, FileText, Loader2, Save, ChevronUp, ChevronDown } from "lucide-react";
 import type { CourseSection, Module } from "@/types/database";
 import { createSection, createModule, updateSectionsOrder, updateModulesOrder, updateModule, deleteModule } from "@/app/actions/admin/courses";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import Image from "next/image";
 
-interface ModuleManagerProps {
-  courseId: string;
-  initialSections: CourseSection[];
-  initialModules: Module[];
-}
-
-// Extract YouTube ID from URL or return the ID if already an ID
 function extractYoutubeId(input: string): string {
   if (!input) return "";
-  // Si ya parece un ID de 11 caracteres (ej. dQw4w9WgXcQ)
   if (input.length === 11 && !input.includes("/")) return input;
   
   const match = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
   return match ? match[1] : input;
 }
 
+// Custom collision detection to handle dragging sections over modules
+function getCustomCollisionDetection(sections: CourseSection[], modules: Module[], activeType: string | null) {
+  return (args: any) => {
+    const collisions = closestCorners(args);
+    
+    if (activeType === 'section' && collisions.length > 0) {
+      return collisions.map(collision => {
+        const isModule = modules.some(m => m.id === collision.id);
+        if (isModule) {
+          const module = modules.find(m => m.id === collision.id);
+          if (module && module.section_id) {
+            return {
+              ...collision,
+              id: module.section_id
+            };
+          }
+        }
+        return collision;
+      });
+    }
+    
+    return collisions;
+  };
+}
+
 // Draggable Module Item
 function SortableModuleItem({ module, courseId }: { module: Module; courseId: string }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: module.id });
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({ 
+    id: module.id
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(module.title);
   const [editYoutubeInput, setEditYoutubeInput] = useState(module.youtube_video_id ? `https://youtube.com/watch?v=${module.youtube_video_id}` : "");
@@ -59,23 +77,25 @@ function SortableModuleItem({ module, courseId }: { module: Module; courseId: st
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    transition,
-    opacity: isDragging ? 0.3 : 1,
   };
+
+  if (isDragging) {
+    return (
+      <div ref={setNodeRef} style={style} className="h-1.5 bg-muted-foreground/20 rounded-full my-4 ml-8 mr-4" />
+    );
+  }
 
   const isVideo = module.content_type === "youtube_video" || module.content_type === "youtube_live";
 
   const handleUpdate = () => {
     if (!editTitle.trim()) return;
-    
     const extractedId = extractYoutubeId(editYoutubeInput);
-    
     startTransition(async () => {
       await updateModule(module.id, courseId, {
         title: editTitle,
         youtube_video_id: extractedId || null,
         youtube_url: editYoutubeInput || null,
-        is_published: true, // Auto publish for now when they add video
+        is_published: true,
       });
       setIsEditing(false);
       router.refresh();
@@ -92,10 +112,12 @@ function SortableModuleItem({ module, courseId }: { module: Module; courseId: st
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center justify-between p-2 group hover:bg-accent/50 rounded-lg transition-colors">
+    <div ref={setNodeRef} style={style} className="flex items-center justify-between p-2 group hover:bg-accent/50 rounded-lg">
       <div className="flex items-center gap-3">
-        <div {...attributes} {...listeners} className="cursor-grab hover:bg-muted p-1 rounded">
+        <div {...attributes} {...listeners} className="cursor-grab hover:bg-accent p-1.5 rounded-md transition-colors flex flex-col items-center gap-0.5 group/grip">
+          <ChevronUp className="h-3 w-3 text-muted-foreground/50 group-hover/grip:text-primary transition-colors" />
           <GripVertical className="h-4 w-4 text-muted-foreground" />
+          <ChevronDown className="h-3 w-3 text-muted-foreground/50 group-hover/grip:text-primary transition-colors" />
         </div>
         <div className="flex items-center justify-center h-8 w-8 rounded bg-muted overflow-hidden relative shrink-0">
           {module.youtube_video_id ? (
@@ -170,17 +192,24 @@ function SortableSectionItem({
   modules: Module[];
   courseId: string;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: section.id });
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({ 
+    id: section.id
+  });
   const [isPending, startTransition] = useTransition();
   const [newModuleTitle, setNewModuleTitle] = useState("");
   const [isAddingModule, setIsAddingModule] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    transition,
-    opacity: isDragging ? 0.3 : 1,
   };
+
+  if (isDragging) {
+    return (
+      <div ref={setNodeRef} style={style} className="h-2 bg-muted-foreground/10 rounded-full my-8 mx-4" />
+    );
+  }
 
   const handleAddModule = () => {
     if (!newModuleTitle.trim()) return;
@@ -198,6 +227,7 @@ function SortableSectionItem({
         } else {
           setNewModuleTitle("");
           setIsAddingModule(false);
+          router.refresh();
         }
       } catch (err: any) {
         setError(err.message || "Ocurrió un error inesperado.");
@@ -205,12 +235,16 @@ function SortableSectionItem({
     });
   };
 
+  const moduleIds = modules.map(m => m.id);
+
   return (
     <div ref={setNodeRef} style={style} className="mb-10">
       <div className="flex items-center justify-between pb-4 border-b group mb-4">
         <div className="flex items-center gap-3">
-          <div {...attributes} {...listeners} className="cursor-grab hover:bg-muted p-1 rounded transition-colors">
+          <div {...attributes} {...listeners} className="cursor-grab hover:bg-accent p-1.5 rounded-md transition-colors flex flex-col items-center gap-0.5 group/grip">
+            <ChevronUp className="h-3 w-3 text-muted-foreground/50 group-hover/grip:text-primary transition-colors" />
             <GripVertical className="h-5 w-5 text-muted-foreground" />
+            <ChevronDown className="h-3 w-3 text-muted-foreground/50 group-hover/grip:text-primary transition-colors" />
           </div>
           <h3 className="text-xl font-bold tracking-tight">{section.title}</h3>
         </div>
@@ -223,7 +257,7 @@ function SortableSectionItem({
       </div>
 
       <div className="pl-8">
-        <SortableContext items={modules.map(m => m.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={moduleIds} strategy={verticalListSortingStrategy}>
           <div className="space-y-1">
             {modules.map(mod => (
               <SortableModuleItem key={mod.id} module={mod} courseId={courseId} />
@@ -271,7 +305,15 @@ function SortableSectionItem({
   );
 }
 
-export function ModuleManager({ courseId, initialSections, initialModules }: ModuleManagerProps) {
+export function ModuleManager({ 
+  courseId, 
+  initialSections, 
+  initialModules 
+}: { 
+  courseId: string;
+  initialSections: CourseSection[];
+  initialModules: Module[];
+}) {
   const router = useRouter();
   const [sections, setSections] = useState(initialSections);
   const [modules, setModules] = useState(initialModules);
@@ -287,7 +329,6 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
     setIsMounted(true);
   }, []);
 
-  // Sync state when props change (after router.refresh())
   useEffect(() => {
     setSections(initialSections);
     setModules(initialModules);
@@ -318,7 +359,17 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
     
     if (isSectionDrag) {
       const oldIndex = sections.findIndex(s => s.id === active.id);
-      const newIndex = sections.findIndex(s => s.id === over.id);
+      
+      // If over.id is a module, find the section it belongs to
+      let overId = over.id;
+      if (!sections.some(s => s.id === overId)) {
+        const overModule = modules.find(m => m.id === overId);
+        if (overModule && overModule.section_id) {
+          overId = overModule.section_id;
+        }
+      }
+
+      const newIndex = sections.findIndex(s => s.id === overId);
       
       if (oldIndex === -1 || newIndex === -1) return;
 
@@ -396,7 +447,7 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
           </Button>
         </div>
       </div>
- 
+
       <Dialog open={isAddingSection} onOpenChange={setIsAddingSection}>
         <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
           <DialogHeader className="px-6 pt-6 pb-4 bg-muted/30 border-b">
@@ -429,11 +480,11 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
           </DialogFooter>
         </DialogContent>
       </Dialog>
- 
+
       {isMounted && (
         <DndContext 
           sensors={sensors} 
-          collisionDetection={closestCenter} 
+          collisionDetection={getCustomCollisionDetection(sections, modules, activeType)} 
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
@@ -454,7 +505,11 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
             {activeId && activeType === 'section' ? (
               <div className="bg-background border rounded-lg p-4 shadow-2xl opacity-90 cursor-grabbing w-full max-w-5xl">
                 <div className="flex items-center gap-3">
-                  <GripVertical className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex flex-col items-center gap-0.5">
+                    <ChevronUp className="h-3 w-3 text-muted-foreground/50" />
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                    <ChevronDown className="h-3 w-3 text-muted-foreground/50" />
+                  </div>
                   <h3 className="text-xl font-bold tracking-tight">
                     {sections.find(s => s.id === activeId)?.title}
                   </h3>
@@ -463,7 +518,11 @@ export function ModuleManager({ courseId, initialSections, initialModules }: Mod
             ) : activeId && activeType === 'module' ? (
               <div className="bg-background border rounded-lg p-3 shadow-2xl opacity-90 cursor-grabbing w-full max-w-md">
                 <div className="flex items-center gap-3">
-                  <GripVertical className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex flex-col items-center gap-0.5">
+                    <ChevronUp className="h-3 w-3 text-muted-foreground/50" />
+                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    <ChevronDown className="h-3 w-3 text-muted-foreground/50" />
+                  </div>
                   <span className="font-medium text-sm">
                     {modules.find(m => m.id === activeId)?.title}
                   </span>
