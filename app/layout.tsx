@@ -15,8 +15,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "FEBAcademy — Aprende Tecnología Online",
+    default: "FEBAcademy",
     template: "%s | FEBAcademy",
+  },
+  icons: {
+    icon: "/logopx2.svg",
   },
   description:
     "Plataforma de cursos en línea para aprender tecnología, diseño y más. Clases en vivo, contenido grabado y una comunidad activa.",

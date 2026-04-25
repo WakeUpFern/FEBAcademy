@@ -19,48 +19,48 @@ import {
 
 const features = [
   {
-    icon: BookOpen,
-    title: "Cursos a tu Ritmo",
-    description:
-      "Accede a contenido grabado de alta calidad. Aprende cuando quieras, donde quieras.",
-  },
-  {
-    icon: Radio,
-    title: "Clases en Vivo",
-    description:
-      "Participa en sesiones en vivo con instructores expertos. Pregunta y aprende en tiempo real.",
-  },
-  {
-    icon: Users,
-    title: "Comunidad Activa",
-    description:
-      "Conecta con otros estudiantes, comparte proyectos y crece junto a una comunidad apasionada.",
-  },
-  {
     icon: Zap,
-    title: "Progreso Inteligente",
+    title: "Desarrollo Acelerado con IA",
     description:
-      "Retoma donde lo dejaste. Seguimiento automático de tu avance en cada curso.",
+      "Aprende a crear aplicaciones completas en tiempo récord integrando asistentes, agentes de código y las últimas herramientas de Inteligencia Artificial.",
   },
   {
-    icon: Globe,
-    title: "Contenido en Español",
+    icon: BookOpen,
+    title: "Cursos 100% Gratuitos",
     description:
-      "Todo el contenido está pensado y producido en español para la comunidad hispanohablante.",
+      "Por nuestro lanzamiento, todo el contenido es gratuito. Nuestra misión es democratizar el acceso a la nueva era del desarrollo de software.",
   },
   {
     icon: Sparkles,
-    title: "Siempre Actualizado",
+    title: "Tecnologías de Vanguardia",
     description:
-      "Contenido nuevo cada semana. Nos mantenemos al día con las últimas tecnologías y tendencias.",
+      "Olvídate del stack obsoleto. Te enseñamos a usar las tecnologías exactas que las startups más innovadoras están adoptando hoy.",
+  },
+  {
+    icon: Users,
+    title: "Experiencia Real de Startup",
+    description:
+      "Todo el material es creado por los ingenieros de FEBAcode. Te enseñamos los flujos de trabajo reales que utilizamos en nuestro día a día.",
+  },
+  {
+    icon: Radio,
+    title: "Proyectos 100% Prácticos",
+    description:
+      "Menos teoría, más código. Construye proyectos útiles desde cero resolviendo problemas reales y optimizando con IA.",
+  },
+  {
+    icon: Globe,
+    title: "Multiplica tu Productividad",
+    description:
+      "Domina las nuevas herramientas y conviértete en un perfil altamente cotizado. Un desarrollador potenciado por IA vale por diez.",
   },
 ];
 
 const stats = [
-  { value: "500+", label: "Horas de Contenido" },
-  { value: "10K+", label: "Estudiantes" },
-  { value: "50+", label: "Cursos" },
-  { value: "4.9★", label: "Calificación" },
+  { value: "Gratis", label: "Cursos de Lanzamiento" },
+  { value: "10x", label: "Más Rápido con IA" },
+  { value: "100%", label: "Proyectos Prácticos" },
+  { value: "Top", label: "Herramientas Modernas" },
 ];
 
 export default function HomePage() {
@@ -89,15 +89,12 @@ export default function HomePage() {
             </Badge>
 
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-balance leading-[1.1] mb-6">
-              Aprende{" "}
-              <span className="gradient-text">Tecnología</span>
-              <br />
-              sin Límites
+              Domina el Código con{" "}
+              <span className="gradient-text">Inteligencia Artificial</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed text-balance">
-              Cursos en vivo y grabados, creados por expertos de la industria.
-              Desde programación hasta inteligencia artificial, todo en español.
+              Crea aplicaciones increíbles usando IA. Cursos 100% gratuitos impulsados por <strong>FEBAcode</strong>.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -200,8 +197,7 @@ export default function HomePage() {
               <span className="gradient-text">viaje de aprendizaje</span>?
             </h2>
             <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-              Únete a miles de estudiantes que ya están aprendiendo con
-              FEBAcademy. Es gratis para comenzar.
+              Únete a nuestra primera generación y descubre cómo la Inteligencia Artificial puede multiplicar tu velocidad de desarrollo. Todo nuestro contenido actual es gratuito.
             </p>
             {!user && (
               <Button
