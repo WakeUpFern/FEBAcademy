@@ -4,32 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
+import { MobileMenu } from "@/components/layout/MobileMenu";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  GraduationCap,
-  LogOut,
-  LayoutDashboard,
-  Settings,
-  Menu,
   BookOpen,
   Radio,
   FileText,
-  ChevronDown,
 } from "lucide-react";
-import { useState, useEffect } from "react";
 import { AnimatedLogoText } from "@/components/ui/animated-logo";
 
 const navLinks = [
@@ -39,17 +20,7 @@ const navLinks = [
 ];
 
 export function Header() {
-  const { user, profile, isLoading, signInWithGoogle, signOut, isAdmin, isInstructor } =
-    useAuth();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  const initials =
-    profile?.full_name
-      ?.split(" ")
-      .map((n) => n[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "U";
+  const { user, profile, isLoading, signInWithGoogle } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-border/50">
@@ -93,59 +64,7 @@ export function Header() {
           {isLoading ? (
             <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />
           ) : user && profile ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    className="flex items-center gap-2 px-2 h-auto py-1.5 hover:bg-accent"
-                  />
-                }
-              >
-                <Avatar className="h-8 w-8 ring-2 ring-primary/20">
-                  <AvatarImage
-                    src={profile.avatar_url || undefined}
-                    alt={profile.full_name || "Avatar"}
-                  />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="hidden lg:block text-sm font-medium max-w-[120px] truncate">
-                  {profile.full_name || "Usuario"}
-                </span>
-                <ChevronDown className="hidden lg:block h-3.5 w-3.5 text-muted-foreground" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-2">
-                  <p className="text-sm font-semibold truncate">
-                    {profile.full_name}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user.email}
-                  </p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem render={<Link href="/dashboard" />}>
-                  <LayoutDashboard className="h-4 w-4" />
-                  Mi Dashboard
-                </DropdownMenuItem>
-                {(isAdmin || isInstructor) && (
-                  <DropdownMenuItem render={<Link href="/admin" />}>
-                    <Settings className="h-4 w-4" />
-                    Panel de Admin
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={signOut}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Cerrar Sesión
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserProfileMenu showName={true} />
           ) : (
             <Button
               onClick={() => signInWithGoogle()}
@@ -175,23 +94,16 @@ export function Header() {
           )}
 
           {/* Mobile menu */}
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger
-              render={
-                <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden" />
-              }
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Menú</span>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] p-0">
-              <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
+          <MobileMenu 
+            side="right" 
+            triggerClassName="h-9 w-9 md:hidden"
+            contentClassName="w-[280px] p-0"
+          >
               <div className="flex flex-col h-full">
                 <div className="p-6 border-b">
                   <Link
                     href="/"
                     className="flex items-center gap-3 font-bold text-2xl"
-                    onClick={() => setMobileOpen(false)}
                   >
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg gradient-brand text-white">
                       <div className="relative h-10 w-10">
@@ -212,7 +124,6 @@ export function Header() {
                     <Link
                       key={link.href}
                       href={link.href}
-                      onClick={() => setMobileOpen(false)}
                       className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors hover:bg-accent"
                     >
                       <link.icon className="h-4 w-4 text-muted-foreground" />
@@ -221,8 +132,7 @@ export function Header() {
                   ))}
                 </nav>
               </div>
-            </SheetContent>
-          </Sheet>
+          </MobileMenu>
         </div>
       </div>
     </header>
